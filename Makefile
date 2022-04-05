@@ -7,7 +7,7 @@ pigeon: get
 	flutter pub run pigeon \
 	--input "pigeons/dpm.dart" \
 	--dart_out "lib/src/dpm.g.dart" \
-	--java_out "android/app/src/main/kotlin/com/example/dpm_flutter/Dpm.java" \
+	--java_out "android/app/src/main/kotlin/com/example/dpm/Dpm.java" \
 	--java_package "com.example.dpm" \
 	--dart_null_safety
 

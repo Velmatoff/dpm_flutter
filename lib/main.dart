@@ -1,3 +1,4 @@
+import 'package:dpm_flutter/src/dpm_controller.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -28,13 +29,8 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
+  bool? isProfileOwnerApp;
+  final DpmController _controller = DpmController();
 
   @override
   Widget build(BuildContext context) {
@@ -43,23 +39,64 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-          ],
+        child: StreamBuilder<bool>(
+          stream: _controller.poStream,
+          builder: (context, snapshot) {
+            if (snapshot.hasData && snapshot.data == true) {
+              return Column(
+                children: [
+                  ElevatedButton(
+                    onPressed: () async {
+                      await _controller.enableWorkProfile();
+                    },
+                    child: const Text('Активировать'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      await _controller.setSysApp('com.android.chrome');
+                    },
+                    child: const Text('Установить Chrome'),
+                  ),
+                  const Text('Скриншоты запрещены'),
+                  StreamBuilder<bool>(
+                    stream: _controller.screenCaptureDisabledStream,
+                    builder: (context, snapshot) {
+                     if (snapshot.hasData && snapshot.data != null) {
+                       return Checkbox(value: snapshot.data, onChanged: (b){
+                         _controller.screenCaptureDisabled(b!);
+                       });
+                     } else {
+                       return const SizedBox();
+                     }
+                    },
+                  )
+                ],
+              );
+            } else {
+              return Column(
+                children: [
+                  ElevatedButton(
+                    onPressed: () async {
+                      await _controller.createWorkProfile();
+                    },
+                    child: const Text('Установить рабочий профиль'),
+                  ),
+                ],
+              );
+            }
+          }
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+        onPressed: () async {
+          _controller.createWorkProfile();
+          final v = await _controller.isProfileOwnerApp();
+          print(v);
+          setState(() {
+            isProfileOwnerApp = v;
+          });
+        },
+        child: const Icon(Icons.question_answer),
       ),
     );
   }
